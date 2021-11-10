@@ -7,12 +7,8 @@ const WORDS = {
 };
 
 const ENV_FLAGS = process?.argv;
-const WORDS_DIR_PATH = __dirname.replace(/(dist)$/, WORDS.LIGHT);
+const WORDS_DIR_PATH = __dirname.replace(/(dist)$/, WORDS.HEAVY);
 const WORDS_FILES_NAME_LIST = fs.readdirSync(WORDS_DIR_PATH);
-
-function getIntersectionList(arr1, arr2) {
-	return [...new Set(arr1.filter(item => arr2.indexOf(item) !== -1))];
-}
 
 function getFileData(fileName) {
 	const localFileName = `${WORDS_DIR_PATH}/${fileName}`;
@@ -30,13 +26,20 @@ function getWordsListFromFile(fileName) {
 		.split('\n');
 }
 
-function getUniqueWordsList() {
-	const localWordsList = WORDS_FILES_NAME_LIST.map(file => {
+// function getUniqueWordsList() {
+// 	const localWordsList = WORDS_FILES_NAME_LIST.map(file => {
+// 		const wordsFromFile = getWordsListFromFile(file);
+// 		return [...new Set(wordsFromFile)];
+// 	}).flat(Infinity);
+//
+// 	return [...new Set(localWordsList)];
+// }
+
+function getUniqueWordsBenchList() {
+	return WORDS_FILES_NAME_LIST.map(file => {
 		const wordsFromFile = getWordsListFromFile(file);
 		return [...new Set(wordsFromFile)];
-	}).flat(Infinity);
-
-	return [...new Set(localWordsList)];
+	});
 }
 
 async function isFileIncludesWord(word, fileName) {
@@ -60,30 +63,55 @@ async function isFileIncludesWord(word, fileName) {
 	return isIncludes;
 }
 
+function getUnintersectionList(arr1 = [], arr2 = []) {
+	return arr1.filter(item => arr2.indexOf(item) === -1);
+}
+
+function countSteps(itemsCount, attempts = 0) {
+	if (itemsCount === 1) return attempts;
+	return countSteps(Math.ceil(itemsCount / 2), attempts + 1);
+}
+
 async function uniqueValues() {
 	console.time('uniqueValues');
-	let uniqueWordsCount = 0;
 
-	const uniqueWordsList = getUniqueWordsList();
+	// const uniqueWordsList = getUniqueWordsList();
+	let uniqueBenchList = getUniqueWordsBenchList();
+	const steps = countSteps(uniqueBenchList.length);
 
-	for (const word of uniqueWordsList) {
-		let findTimes = 0;
+	for (let i = 0; i < steps; i++) {
+		const isOdd = uniqueBenchList.length % 2 !== 0;
 
-		for (const fileName of WORDS_FILES_NAME_LIST) {
-			if (findTimes > 1) {
-				uniqueWordsCount++;
-				break;
-			}
-			const isInclude = await isFileIncludesWord(word, fileName);
-			if (isInclude) {
-				findTimes++;
-			}
-		}
+		uniqueBenchList = uniqueBenchList.map((item, index) => {
+			if (isOdd && index === uniqueBenchList.length - 1) return [item];
+			if (index % 2 === 0) return false;
+			return [
+				...getUnintersectionList(uniqueBenchList[index - 1], uniqueBenchList[index]),
+				...getUnintersectionList(uniqueBenchList[index], uniqueBenchList[index - 1])
+			]
+		}).filter(Boolean);
 	}
 
-	console.log('uniqueWordsCount: ', uniqueWordsCount);
+	console.log('uniqueValues: ', uniqueBenchList[0].length);
+
+	// for (const word of uniqueWordsList) {
+	// 	let findTimes = 0;
+	//
+	// 	for (const fileName of WORDS_FILES_NAME_LIST) {
+	// 		if (findTimes > 1) {
+	// 			uniqueWordsCount++;
+	// 			break;
+	// 		}
+	// 		const isInclude = await isFileIncludesWord(word, fileName);
+	// 		if (isInclude) {
+	// 			findTimes++;
+	// 		}
+	// 	}
+	// }
+
+	// console.log('uniqueWordsCount: ', uniqueWordsCount);
 	console.timeEnd('uniqueValues');
-	return uniqueWordsCount;
+	// return uniqueWordsCount;
 }
 
 // function uniqueValues() {
