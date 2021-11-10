@@ -1,0 +1,28 @@
+{
+  "name": "inst-giveaway",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel index.js -d dist",
+    "unique-values": "npm run build && node dist/index.js --uniqueValues",
+    "exist-in-all-files": "npm run build && node dist/index.js --existInAllFiles",
+    "atleast-ten": "npm run build && node dist/index.js --atleastTen"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mesa4/inst-giveaway.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mesa4/inst-giveaway/issues"
+  },
+  "homepage": "https://github.com/mesa4/inst-giveaway#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.16.0",
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.0"
+  }
+}

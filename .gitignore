@@ -1,0 +1,24 @@
+### Node template
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# IDE
+.idea
+.vscode
+
+# Misc
+.DS_Store
+
+# Dependency directories
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+*.local
+
+.env
+!.env.*
