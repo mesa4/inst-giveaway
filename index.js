@@ -7,7 +7,7 @@ const WORDS = {
 };
 
 const ENV_FLAGS = process?.argv;
-const WORDS_DIR_PATH = __dirname.replace(/(dist)$/, WORDS.HEAVY);
+const WORDS_DIR_PATH = __dirname.replace(/(dist)$/, WORDS.LIGHT);
 const WORDS_FILES_NAME_LIST = fs.readdirSync(WORDS_DIR_PATH);
 
 function getFileData(fileName) {
@@ -63,8 +63,12 @@ async function isFileIncludesWord(word, fileName) {
 	return isIncludes;
 }
 
-function getUnintersectionList(arr1 = [], arr2 = []) {
+function getDifferenceList(arr1 = [], arr2 = []) {
 	return arr1.filter(item => arr2.indexOf(item) === -1);
+}
+
+function getComparedList(arr1 = [], arr2 = []) {
+	return [...getDifferenceList(arr1, arr2), ...getDifferenceList(arr2, arr1)];
 }
 
 function countSteps(itemsCount, attempts = 0) {
@@ -79,39 +83,24 @@ async function uniqueValues() {
 	let uniqueBenchList = getUniqueWordsBenchList();
 	const steps = countSteps(uniqueBenchList.length);
 
-	for (let i = 0; i < steps; i++) {
+	for (let i = 1; i <= steps; i++) {
+		const isLastStep = i === steps;
 		const isOdd = uniqueBenchList.length % 2 !== 0;
 
-		uniqueBenchList = uniqueBenchList.map((item, index) => {
-			if (isOdd && index === uniqueBenchList.length - 1) return [item];
-			if (index % 2 === 0) return false;
-			return [
-				...getUnintersectionList(uniqueBenchList[index - 1], uniqueBenchList[index]),
-				...getUnintersectionList(uniqueBenchList[index], uniqueBenchList[index - 1])
-			]
-		}).filter(Boolean);
+		if (isLastStep) {
+			uniqueBenchList = [getComparedList(uniqueBenchList[0], uniqueBenchList[1])];
+		} else {
+			uniqueBenchList = uniqueBenchList.map((item, index) => {
+				if (isOdd && index === uniqueBenchList.length - 1) return item;
+				if (index % 2 === 0) return false;
+				return getComparedList(uniqueBenchList[index - 1], uniqueBenchList[index]);
+			}).filter(Boolean);
+		}
 	}
 
+	console.log('uniqueBenchList: ', uniqueBenchList);
 	console.log('uniqueValues: ', uniqueBenchList[0].length);
-
-	// for (const word of uniqueWordsList) {
-	// 	let findTimes = 0;
-	//
-	// 	for (const fileName of WORDS_FILES_NAME_LIST) {
-	// 		if (findTimes > 1) {
-	// 			uniqueWordsCount++;
-	// 			break;
-	// 		}
-	// 		const isInclude = await isFileIncludesWord(word, fileName);
-	// 		if (isInclude) {
-	// 			findTimes++;
-	// 		}
-	// 	}
-	// }
-
-	// console.log('uniqueWordsCount: ', uniqueWordsCount);
 	console.timeEnd('uniqueValues');
-	// return uniqueWordsCount;
 }
 
 // function uniqueValues() {
